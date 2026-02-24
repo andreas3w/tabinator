@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabinator</title>
+    <style>
+      :root {
+        --bg: #23262b;
+        --surface: #2a2e34;
+        --text: #e8edf7;
+        --muted: #b3bccd;
+        --accent: rgb(122, 151, 251);
+        --accent-2: #9fb6ff;
+        --border-soft: #434953;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 14px;
+        min-width: 280px;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+      p {
+        margin: 0 0 12px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border-soft);
+        border-radius: 12px;
+        padding: 12px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+      }
+      input[type="number"] {
+        flex: 1;
+        border: 1px solid var(--border-soft);
+        background: #32373f;
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 14px;
+      }
+      button {
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        background: rgba(122, 151, 251, 0.18);
+        color: #dce6ff;
+        padding: 8px 12px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: rgba(122, 151, 251, 0.28);
+        border-color: var(--accent-2);
+      }
+      #status {
+        margin-top: 8px;
+        min-height: 16px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tabinator</h1>
+    <p>Set max unpinned tabs per window.</p>
+
+    <div class="card">
+      <label for="limit">Unpinned tab limit</label>
+      <div class="row">
+        <input id="limit" type="number" min="1" max="100" />
+        <button id="save">Save</button>
+      </div>
+      <div id="status"></div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

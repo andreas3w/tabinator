@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tab Limit Reached</title>
+    <style>
+      :root {
+        --bg: #23262b;
+        --surface: #2a2e34;
+        --list-item: #32373f;
+        --border-soft: #434953;
+        --text: #e8edf7;
+        --muted: #b3bccd;
+        --accent: rgb(122, 151, 251);
+        --accent-strong: #9fb6ff;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 420px;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .wrap {
+        padding: 14px;
+      }
+
+      h1 {
+        font-size: 16px;
+        margin: 0 0 6px;
+      }
+
+      .sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 0 10px;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border-soft);
+        border-radius: 12px;
+        padding: 10px;
+      }
+
+      .pending {
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      button {
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+      }
+
+      #close-oldest {
+        background: rgba(122, 151, 251, 0.18);
+        color: #dce6ff;
+        font-weight: 600;
+      }
+
+      #close-oldest:hover {
+        background: rgba(122, 151, 251, 0.28);
+        border-color: var(--accent-strong);
+      }
+
+      #dont-open {
+        background: #2f343c;
+        color: var(--text);
+      }
+
+      #dont-open:hover {
+        background: #363c45;
+        border-color: var(--accent-strong);
+      }
+
+      #tab-list {
+        display: grid;
+        gap: 6px;
+        max-height: 360px;
+        overflow: auto;
+      }
+
+      .tab-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6px;
+        align-items: center;
+        background: var(--list-item);
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        padding: 7px 8px;
+      }
+
+      .tab-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+      }
+
+      .tab-label small {
+        color: var(--muted);
+        margin-right: 6px;
+      }
+
+      .close-one {
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        text-align: center;
+        border-radius: 6px;
+        background: #2b3038;
+        color: #dce6ff;
+        border: 1px solid var(--accent);
+        font-weight: 700;
+        padding: 0;
+      }
+
+      .close-one:hover {
+        background: #343a43;
+        border-color: var(--accent-strong);
+      }
+
+      .empty {
+        font-size: 12px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Tab limit reached</h1>
+      <p class="sub">Close one unpinned tab to open the pending tab.</p>
+      <div class="panel">
+        <div class="pending" id="pending-info"></div>
+        <div class="actions">
+          <button id="close-oldest">Close oldest</button>
+          <button id="dont-open">Don't open</button>
+        </div>
+        <div id="tab-list"></div>
+      </div>
+    </div>
+
+    <script src="prompt.js"></script>
+  </body>
+</html>
