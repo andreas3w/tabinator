@@ -3,6 +3,17 @@ const SETTINGS_POPUP_PATH = "popup.html";
 const PROMPT_POPUP_PATH = "prompt.html";
 const NEW_TAB_URL = "chrome://newtab/";
 
+const DEFAULT_AUTO_CLOSE_PATTERNS = [
+  "chrome://newtab",
+  "chrome://new-tab-page",
+  "edge://newtab",
+  "signin.aws.amazon.com",
+  "us-east-1.signin.aws.amazon.com",
+  "phd.awsapps.com",
+  "github.com/login",
+  "github.com/sessions",
+];
+
 let promptWindowId = null;
 const pendingQueue = [];
 
@@ -19,12 +30,37 @@ function getLimit() {
     .catch(() => DEFAULT_LIMIT);
 }
 
+function getAutoClosePatterns() {
+  return chrome.storage.local
+    .get({
+      autoClosePatterns: DEFAULT_AUTO_CLOSE_PATTERNS,
+      autoCloseEnabled: true,
+    })
+    .then((v) => ({
+      enabled: v.autoCloseEnabled !== false,
+      patterns: Array.isArray(v.autoClosePatterns)
+        ? v.autoClosePatterns
+        : DEFAULT_AUTO_CLOSE_PATTERNS,
+    }))
+    .catch(() => ({ enabled: true, patterns: DEFAULT_AUTO_CLOSE_PATTERNS }));
+}
+
+function tabMatchesAutoClose(tab, patterns) {
+  const url = (tab.url || tab.pendingUrl || "").toLowerCase();
+  if (!url) return false;
+  return patterns.some((pattern) => url.includes(pattern.toLowerCase()));
+}
+
 function isPromptTab(tab) {
-  return Boolean(tab?.url?.startsWith(chrome.runtime.getURL(PROMPT_POPUP_PATH)));
+  return Boolean(
+    tab?.url?.startsWith(chrome.runtime.getURL(PROMPT_POPUP_PATH)),
+  );
 }
 
 function isExtensionInternalTab(tab) {
-  return Boolean(tab?.url?.startsWith(`chrome-extension://${chrome.runtime.id}/`));
+  return Boolean(
+    tab?.url?.startsWith(`chrome-extension://${chrome.runtime.id}/`),
+  );
 }
 
 async function listUnpinnedTabs(windowId) {
@@ -90,7 +126,9 @@ async function syncActionUi() {
   }
 
   try {
-    await chrome.action.setBadgeText({ text: hasPending ? String(Math.min(pendingQueue.length, 99)) : "" });
+    await chrome.action.setBadgeText({
+      text: hasPending ? String(Math.min(pendingQueue.length, 99)) : "",
+    });
     if (hasPending) {
       await chrome.action.setBadgeBackgroundColor({ color: "#b42318" });
     }
@@ -170,6 +208,24 @@ async function closeFallbackPromptIfIdle() {
   promptWindowId = null;
 }
 
+async function tryAutoCloseTab(windowId) {
+  const { enabled, patterns } = await getAutoClosePatterns();
+  if (!enabled || !patterns.length) return false;
+
+  const unpinnedTabs = await listUnpinnedTabs(windowId);
+  for (const candidate of unpinnedTabs) {
+    if (tabMatchesAutoClose(candidate, patterns)) {
+      try {
+        await chrome.tabs.remove(candidate.id);
+        return true;
+      } catch {
+        // Tab may already be gone, continue checking.
+      }
+    }
+  }
+  return false;
+}
+
 async function enforceLimitOnCreatedTab(tab) {
   if (!tab || tab.pinned || tab.windowId === chrome.windows.WINDOW_ID_NONE) {
     return;
@@ -183,6 +239,12 @@ async function enforceLimitOnCreatedTab(tab) {
   const unpinnedTabs = await listUnpinnedTabs(tab.windowId);
 
   if (unpinnedTabs.length <= limit) {
+    return;
+  }
+
+  // Try to auto-close a matching tab before prompting the user.
+  const autoClosed = await tryAutoCloseTab(tab.windowId);
+  if (autoClosed) {
     return;
   }
 
@@ -352,6 +414,34 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       return true;
     }
     syncActionUi().then(() => getPromptState().then(sendResponse));
+    return true;
+  }
+
+  if (message.type === "getAutoClosePatterns") {
+    getAutoClosePatterns().then(sendResponse);
+    return true;
+  }
+
+  if (message.type === "saveAutoClosePatterns") {
+    const patterns = Array.isArray(message.patterns) ? message.patterns : [];
+    const enabled = message.enabled !== false;
+    chrome.storage.local
+      .set({ autoClosePatterns: patterns, autoCloseEnabled: enabled })
+      .then(() => sendResponse({ ok: true }))
+      .catch(() => sendResponse({ ok: false }));
+    return true;
+  }
+
+  if (message.type === "resetAutoClosePatterns") {
+    chrome.storage.local
+      .set({
+        autoClosePatterns: DEFAULT_AUTO_CLOSE_PATTERNS,
+        autoCloseEnabled: true,
+      })
+      .then(() =>
+        sendResponse({ ok: true, patterns: DEFAULT_AUTO_CLOSE_PATTERNS }),
+      )
+      .catch(() => sendResponse({ ok: false }));
     return true;
   }
 });
