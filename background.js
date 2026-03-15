@@ -208,12 +208,13 @@ async function closeFallbackPromptIfIdle() {
   promptWindowId = null;
 }
 
-async function tryAutoCloseTab(windowId) {
+async function tryAutoCloseTab(windowId, excludeTabId) {
   const { enabled, patterns } = await getAutoClosePatterns();
   if (!enabled || !patterns.length) return false;
 
   const unpinnedTabs = await listUnpinnedTabs(windowId);
   for (const candidate of unpinnedTabs) {
+    if (candidate.id === excludeTabId) continue;
     if (tabMatchesAutoClose(candidate, patterns)) {
       try {
         await chrome.tabs.remove(candidate.id);
@@ -243,7 +244,7 @@ async function enforceLimitOnCreatedTab(tab) {
   }
 
   // Try to auto-close a matching tab before prompting the user.
-  const autoClosed = await tryAutoCloseTab(tab.windowId);
+  const autoClosed = await tryAutoCloseTab(tab.windowId, tab.id);
   if (autoClosed) {
     return;
   }
