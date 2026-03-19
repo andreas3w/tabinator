@@ -71,6 +71,11 @@
         background: rgba(122, 151, 251, 0.28);
         border-color: var(--accent-2);
       }
+      button:disabled {
+        cursor: default;
+        opacity: 0.6;
+        background: rgba(122, 151, 251, 0.12);
+      }
       #status {
         margin-top: 8px;
         min-height: 16px;
@@ -202,6 +207,14 @@
         color: var(--muted);
         margin: 0 0 8px;
       }
+      .action-row {
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 8px;
+      }
+      #autopin-status {
+        min-height: 14px;
+      }
     </style>
   </head>
   <body>
@@ -229,18 +242,62 @@
       </div>
       <p class="hint">
         Tabs matching these URL patterns are closed automatically when the tab
-        limit is hit, before prompting you.
+        limit is hit, before prompting you. Use domains like
+        <code>github.com</code> or wildcard domains like
+        <code>*.awsapps.com</code>. You can also match host + port like
+        <code>127.0.0.1:8020</code>.
       </p>
       <div id="pattern-list" class="pattern-list"></div>
       <div class="add-row">
         <input
           type="text"
           id="new-pattern"
-          placeholder="e.g. signin.aws.amazon.com"
+          placeholder="e.g. *.awsapps.com or 127.0.0.1:8020"
         />
         <button id="add-pattern">Add</button>
       </div>
       <button class="btn-link" id="reset-patterns">Reset to defaults</button>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="card">
+      <div class="toggle-row">
+        <label>Auto-pin tabs</label>
+        <label class="switch">
+          <input type="checkbox" id="autopin-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <label>Only one</label>
+        <label class="switch">
+          <input type="checkbox" id="autopin-only-one-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <p class="hint">
+        Tabs matching these patterns are pinned on open. When <code>Only one</code>
+        is enabled, opening a new matching tab replaces existing tabs with the
+        same hostname. The first 5 patterns become quick slots for
+        <code>Ctrl+1</code> to <code>Ctrl+5</code>.
+      </p>
+      <div id="autopin-pattern-list" class="pattern-list"></div>
+      <div class="add-row">
+        <input
+          type="text"
+          id="new-autopin-pattern"
+          placeholder="e.g. youtube.com or outlook.office.com"
+        />
+        <button id="add-autopin-pattern">Add</button>
+      </div>
+      <button class="btn-link" id="reset-autopin-patterns">
+        Reset auto-pin list
+      </button>
+      <div class="action-row">
+        <button id="open-autopin-quick">Open all (Ctrl+1-5)</button>
+      </div>
+      <p class="hint" id="autopin-status"></p>
     </div>
 
     <script src="popup.js"></script>
